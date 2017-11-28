@@ -200,7 +200,7 @@ type request interface {
 }
 
 func (c *connection) writeReq(req request, timeout time.Duration) error {
-	errors := make(chan error)
+	errors := make(chan error, 1)
 	go func() {
 		defer close(errors)
 		if err := c.rw.SetWriteDeadline(time.Now().Add(timeout)); err != nil {
