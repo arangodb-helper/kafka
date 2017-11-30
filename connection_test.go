@@ -155,11 +155,11 @@ func TestConnectionMetadata(t *testing.T) {
 	if err != nil {
 		t.Fatalf("test server error: %s", err)
 	}
-	conn, err := newTCPConnection(ln.Addr().String(), time.Second, time.Second)
+	conn, err := newTCPConnection(ctx, ln.Addr().String(), time.Second, time.Second)
 	if err != nil {
 		t.Fatalf("could not conect to test server: %s", err)
 	}
-	resp, err := conn.Metadata(ctx, &proto.MetadataReq{
+	resp, err := conn.Metadata(ctx, time.Second*10, &proto.MetadataReq{
 		ClientID: "tester",
 		Topics:   []string{"first", "second"},
 	})
@@ -214,7 +214,7 @@ func TestConnectionProduce(t *testing.T) {
 	if err != nil {
 		t.Fatalf("test server error: %s", err)
 	}
-	conn, err := newTCPConnection(ln.Addr().String(), time.Second, time.Second)
+	conn, err := newTCPConnection(ctx, ln.Addr().String(), time.Second, time.Second)
 	if err != nil {
 		t.Fatalf("could not conect to test server: %s", err)
 	}
@@ -227,7 +227,7 @@ func TestConnectionProduce(t *testing.T) {
 		msgs <- resp2
 	}()
 
-	resp, err := conn.Produce(ctx, &proto.ProduceReq{
+	resp, err := conn.Produce(ctx, time.Second*20, &proto.ProduceReq{
 		CorrelationID: 1,
 		ClientID:      "tester",
 		Compression:   proto.CompressionNone,
@@ -254,7 +254,7 @@ func TestConnectionProduce(t *testing.T) {
 	if !reflect.DeepEqual(resp, resp1) {
 		t.Fatalf("expected different response %#v", resp)
 	}
-	resp, err = conn.Produce(ctx, &proto.ProduceReq{
+	resp, err = conn.Produce(ctx, time.Second*20, &proto.ProduceReq{
 		CorrelationID: 2,
 		ClientID:      "tester",
 		Compression:   proto.CompressionNone,
@@ -331,11 +331,11 @@ func TestConnectionFetch(t *testing.T) {
 	if err != nil {
 		t.Fatalf("test server error: %s", err)
 	}
-	conn, err := newTCPConnection(ln.Addr().String(), time.Second, time.Second)
+	conn, err := newTCPConnection(ctx, ln.Addr().String(), time.Second, time.Second)
 	if err != nil {
 		t.Fatalf("could not conect to test server: %s", err)
 	}
-	resp, err := conn.Fetch(ctx, &proto.FetchReq{
+	resp, err := conn.Fetch(ctx, time.Second*10, &proto.FetchReq{
 		CorrelationID: 1,
 		ClientID:      "tester",
 		Topics: []proto.FetchReqTopic{
@@ -395,11 +395,11 @@ func TestConnectionOffset(t *testing.T) {
 	if err != nil {
 		t.Fatalf("test server error: %s", err)
 	}
-	conn, err := newTCPConnection(ln.Addr().String(), time.Second, time.Second)
+	conn, err := newTCPConnection(ctx, ln.Addr().String(), time.Second, time.Second)
 	if err != nil {
 		t.Fatalf("could not conect to test server: %s", err)
 	}
-	resp, err := conn.Offset(ctx, &proto.OffsetReq{
+	resp, err := conn.Offset(ctx, time.Second*10, &proto.OffsetReq{
 		ClientID: "tester",
 		Topics: []proto.OffsetReqTopic{
 			{
@@ -428,11 +428,11 @@ func TestConnectionProduceNoAck(t *testing.T) {
 	if err != nil {
 		t.Fatalf("test server error: %s", err)
 	}
-	conn, err := newTCPConnection(ln.Addr().String(), time.Second, time.Second)
+	conn, err := newTCPConnection(ctx, ln.Addr().String(), time.Second, time.Second)
 	if err != nil {
 		t.Fatalf("could not conect to test server: %s", err)
 	}
-	resp, err := conn.Produce(ctx, &proto.ProduceReq{
+	resp, err := conn.Produce(ctx, time.Second*20, &proto.ProduceReq{
 		ClientID:     "tester",
 		Compression:  proto.CompressionNone,
 		RequiredAcks: proto.RequiredAcksNone,
@@ -474,7 +474,7 @@ func TestClosedConnectionWriter(t *testing.T) {
 	if err != nil {
 		t.Fatalf("test server error: %s", err)
 	}
-	conn, err := newTCPConnection(ln.Addr().String(), time.Second, time.Second)
+	conn, err := newTCPConnection(ctx, ln.Addr().String(), time.Second, time.Second)
 	if err != nil {
 		t.Fatalf("could not conect to test server: %s", err)
 	}
@@ -500,7 +500,7 @@ func TestClosedConnectionWriter(t *testing.T) {
 		},
 	}
 	for i := 0; i < 10; i++ {
-		if _, err := conn.Produce(ctx, &req); err == nil {
+		if _, err := conn.Produce(ctx, time.Second*20, &req); err == nil {
 			t.Fatal("message publishing after closing connection should not be possible")
 		}
 	}
@@ -522,7 +522,7 @@ func TestClosedConnectionReader(t *testing.T) {
 	if err != nil {
 		t.Fatalf("test server error: %s", err)
 	}
-	conn, err := newTCPConnection(ln.Addr().String(), time.Second, time.Second)
+	conn, err := newTCPConnection(ctx, ln.Addr().String(), time.Second, time.Second)
 	if err != nil {
 		t.Fatalf("could not conect to test server: %s", err)
 	}
@@ -546,7 +546,7 @@ func TestClosedConnectionReader(t *testing.T) {
 	}
 
 	for i := 0; i < 10; i++ {
-		if _, err := conn.Fetch(ctx, req); err == nil {
+		if _, err := conn.Fetch(ctx, time.Second*10, req); err == nil {
 			t.Fatal("fetching from closed connection succeeded")
 		}
 	}
@@ -570,7 +570,7 @@ func TestConnectionReaderAfterEOF(t *testing.T) {
 		_ = ln.Close()
 	}()
 
-	conn, err := newTCPConnection(ln.Addr().String(), time.Second, time.Second)
+	conn, err := newTCPConnection(ctx, ln.Addr().String(), time.Second, time.Second)
 	if err != nil {
 		t.Fatalf("could not conect to test server: %s", err)
 	}
@@ -593,14 +593,14 @@ func TestConnectionReaderAfterEOF(t *testing.T) {
 		},
 	}
 
-	if _, err := conn.Fetch(ctx, req); err == nil {
+	if _, err := conn.Fetch(ctx, time.Second*10, req); err == nil {
 		t.Fatal("fetching from closed connection succeeded")
 	}
 
 	// Wait until testServer3 closes connection
 	time.Sleep(time.Millisecond * 50)
 
-	if _, err := conn.Fetch(ctx, req); err == nil {
+	if _, err := conn.Fetch(ctx, time.Second*10, req); err == nil {
 		t.Fatal("fetching from closed connection succeeded")
 	}
 }
@@ -611,11 +611,11 @@ func TestNoServerResponse(t *testing.T) {
 	if err != nil {
 		t.Fatalf("test server error: %s", err)
 	}
-	conn, err := newTCPConnection(ln.Addr().String(), time.Second, time.Second)
+	conn, err := newTCPConnection(ctx, ln.Addr().String(), time.Second, time.Second)
 	if err != nil {
 		t.Fatalf("could not conect to test server: %s", err)
 	}
-	_, err = conn.Metadata(ctx, &proto.MetadataReq{
+	_, err = conn.Metadata(ctx, time.Second*10, &proto.MetadataReq{
 		ClientID: "tester",
 		Topics:   []string{"first", "second"},
 	})
