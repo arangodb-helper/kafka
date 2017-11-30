@@ -2028,5 +2028,5 @@ func (c *admin) DescribeConfigs(ctx context.Context, configs ...proto.ConfigReso
 // muCloseDeadConnection must be called.
 func isCloseDeadConnectionNeeded(err error) bool {
 	_, ok := err.(*net.OpError)
-	return ok || err == io.EOF || err == syscall.EPIPE || err == proto.ErrRequestTimeout || isCanceled(err)
+	return ok || err == io.EOF || err == syscall.EPIPE || err == proto.ErrRequestTimeout || isCanceled(err) || isResponseWaiter(err)
 }
