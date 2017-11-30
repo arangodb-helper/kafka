@@ -232,7 +232,7 @@ func (c *connection) Metadata(ctx context.Context, timeout time.Duration, req *p
 	respc, err := c.respWaiter(req.CorrelationID)
 	if err != nil {
 		c.logger.Error("msg", "failed waiting for response", "error", err)
-		return nil, fmt.Errorf("wait for response: %s", err)
+		return nil, &responseWaiterError{err}
 	}
 
 	if err := c.writeReq(req, timeout); err != nil {
@@ -277,7 +277,7 @@ func (c *connection) Produce(ctx context.Context, timeout time.Duration, req *pr
 	respc, err := c.respWaiter(req.CorrelationID)
 	if err != nil {
 		c.logger.Error("msg", "failed waiting for response", "error", err)
-		return nil, fmt.Errorf("wait for response: %s", err)
+		return nil, &responseWaiterError{err}
 	}
 
 	if err := c.writeReq(req, timeout); err != nil {
@@ -309,7 +309,7 @@ func (c *connection) Fetch(ctx context.Context, timeout time.Duration, req *prot
 	respc, err := c.respWaiter(req.CorrelationID)
 	if err != nil {
 		c.logger.Error("msg", "failed waiting for response", "error", err)
-		return nil, fmt.Errorf("wait for response: %s", err)
+		return nil, &responseWaiterError{err}
 	}
 
 	if err := c.writeReq(req, timeout); err != nil {
@@ -366,7 +366,7 @@ func (c *connection) Offset(ctx context.Context, timeout time.Duration, req *pro
 	respc, err := c.respWaiter(req.CorrelationID)
 	if err != nil {
 		c.logger.Error("msg", "failed waiting for response", "error", err)
-		return nil, fmt.Errorf("wait for response: %s", err)
+		return nil, &responseWaiterError{err}
 	}
 
 	// TODO(husio) documentation is not mentioning this directly, but I assume
@@ -399,7 +399,7 @@ func (c *connection) ConsumerMetadata(ctx context.Context, timeout time.Duration
 	respc, err := c.respWaiter(req.CorrelationID)
 	if err != nil {
 		c.logger.Error("msg", "failed waiting for response", "error", err)
-		return nil, fmt.Errorf("wait for response: %s", err)
+		return nil, &responseWaiterError{err}
 	}
 	if err := c.writeReq(req, timeout); err != nil {
 		c.logger.Error("msg", "writeReq failed",
@@ -428,7 +428,7 @@ func (c *connection) OffsetCommit(ctx context.Context, timeout time.Duration, re
 	respc, err := c.respWaiter(req.CorrelationID)
 	if err != nil {
 		c.logger.Error("msg", "failed waiting for response", "error", err)
-		return nil, fmt.Errorf("wait for response: %s", err)
+		return nil, &responseWaiterError{err}
 	}
 	if err := c.writeReq(req, timeout); err != nil {
 		c.logger.Error("msg", "writeReq failed",
@@ -457,7 +457,7 @@ func (c *connection) OffsetFetch(ctx context.Context, timeout time.Duration, req
 	respc, err := c.respWaiter(req.CorrelationID)
 	if err != nil {
 		c.logger.Error("msg", "failed waiting for response", "error", err)
-		return nil, fmt.Errorf("wait for response: %s", err)
+		return nil, &responseWaiterError{err}
 	}
 	if err := c.writeReq(req, timeout); err != nil {
 		c.logger.Error("msg", "writeReq failed",
@@ -486,7 +486,7 @@ func (c *connection) DeleteTopics(ctx context.Context, timeout time.Duration, re
 	respc, err := c.respWaiter(req.CorrelationID)
 	if err != nil {
 		c.logger.Error("msg", "failed waiting for response", "error", err)
-		return nil, fmt.Errorf("wait for response: %s", err)
+		return nil, &responseWaiterError{err}
 	}
 	if err := c.writeReq(req, timeout); err != nil {
 		c.logger.Error("msg", "writeReq failed",
@@ -515,7 +515,7 @@ func (c *connection) DescribeConfigs(ctx context.Context, timeout time.Duration,
 	respc, err := c.respWaiter(req.CorrelationID)
 	if err != nil {
 		c.logger.Error("msg", "failed waiting for response", "error", err)
-		return nil, fmt.Errorf("wait for response: %s", err)
+		return nil, &responseWaiterError{err}
 	}
 	if err := c.writeReq(req, timeout); err != nil {
 		c.logger.Error("msg", "writeReq failed",
